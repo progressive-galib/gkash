@@ -29,7 +29,7 @@ func main() {
 	seed := flag.Bool("seed", false, "seed the db")
 	flag.Parse()
 
-	store, err := NewPostgresStore()
+	store, err := NewSQLiteStore()
 	if err != nil {
 		log.Fatal(err)
 	}

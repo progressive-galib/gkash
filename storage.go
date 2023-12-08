@@ -4,7 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 
-	_ "github.com/lib/pq"
+	//_ "github.com/lib/pq"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type Storage interface {
@@ -16,31 +17,26 @@ type Storage interface {
 	GetAccountByNumber(int) (*Account, error)
 }
 
-type PostgresStore struct {
+type SQLiteStore struct {
 	db *sql.DB
 }
 
-func NewPostgresStore() (*PostgresStore, error) {
-	connStr := "user=postgres dbname=postgres password=gobank sslmode=disable"
-	db, err := sql.Open("postgres", connStr)
+func NewSQLiteStore() (*SQLiteStore, error) {
+	db, err := sql.Open("sqlite3", "./database.db")
 	if err != nil {
 		return nil, err
 	}
 
-	if err := db.Ping(); err != nil {
-		return nil, err
-	}
-
-	return &PostgresStore{
+	return &SQLiteStore{
 		db: db,
 	}, nil
 }
 
-func (s *PostgresStore) Init() error {
+func (s *SQLiteStore) Init() error {
 	return s.createAccountTable()
 }
 
-func (s *PostgresStore) createAccountTable() error {
+func (s *SQLiteStore) createAccountTable() error {
 	query := `create table if not exists account (
 		id serial primary key,
 		first_name varchar(100),
@@ -55,7 +51,7 @@ func (s *PostgresStore) createAccountTable() error {
 	return err
 }
 
-func (s *PostgresStore) CreateAccount(acc *Account) error {
+func (s *SQLiteStore) CreateAccount(acc *Account) error {
 	query := `insert into account 
 	(first_name, last_name, number, encrypted_password, balance, created_at)
 	values ($1, $2, $3, $4, $5, $6)`
@@ -76,16 +72,16 @@ func (s *PostgresStore) CreateAccount(acc *Account) error {
 	return nil
 }
 
-func (s *PostgresStore) UpdateAccount(*Account) error {
+func (s *SQLiteStore) UpdateAccount(*Account) error {
 	return nil
 }
 
-func (s *PostgresStore) DeleteAccount(id int) error {
+func (s *SQLiteStore) DeleteAccount(id int) error {
 	_, err := s.db.Query("delete from account where id = $1", id)
 	return err
 }
 
-func (s *PostgresStore) GetAccountByNumber(number int) (*Account, error) {
+func (s *SQLiteStore) GetAccountByNumber(number int) (*Account, error) {
 	rows, err := s.db.Query("select * from account where number = $1", number)
 	if err != nil {
 		return nil, err
@@ -98,7 +94,7 @@ func (s *PostgresStore) GetAccountByNumber(number int) (*Account, error) {
 	return nil, fmt.Errorf("account with number [%d] not found", number)
 }
 
-func (s *PostgresStore) GetAccountByID(id int) (*Account, error) {
+func (s *SQLiteStore) GetAccountByID(id int) (*Account, error) {
 	rows, err := s.db.Query("select * from account where id = $1", id)
 	if err != nil {
 		return nil, err
@@ -111,7 +107,7 @@ func (s *PostgresStore) GetAccountByID(id int) (*Account, error) {
 	return nil, fmt.Errorf("account %d not found", id)
 }
 
-func (s *PostgresStore) GetAccounts() ([]*Account, error) {
+func (s *SQLiteStore) GetAccounts() ([]*Account, error) {
 	rows, err := s.db.Query("select * from account")
 	if err != nil {
 		return nil, err
