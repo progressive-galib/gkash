@@ -22,11 +22,11 @@ func seedAccount(store Storage, fname, lname, pw string) *Account {
 }
 
 func seedAccounts(s Storage) {
-	seedAccount(s, "anthony", "GG", "hunter88888")
+	seedAccount(s, "galib", "mahfu", "qqqqqqqqqqqq")
 }
 
 func main() {
-	seed := flag.Bool("seed", false, "seed the db")
+	seed := flag.Bool("seed", true, "seed the db")
 	flag.Parse()
 
 	store, err := NewSQLiteStore()
